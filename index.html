@@ -1,57 +1,132 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MM2 Shop - Магазин ножей и пистолетов</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MM2 Shop</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Основной магазин -->
-    <div id="shop" class="container">
-        <header>
-            <h1>🔪 MM2 Shop</h1>
-            <button onclick="showAdmin()" class="admin-btn">⚙️ Админ</button>
-        </header>
-        
-        <div class="categories">
-            <button class="category-btn active" onclick="filterProducts('all')">Все</button>
-            <button class="category-btn" onclick="filterProducts('knife')">🔪 Ножи</button>
-            <button class="category-btn" onclick="filterProducts('gun')">🔫 Пистолеты</button>
-            <button class="category-btn" onclick="filterProducts('rare')">💎 Редкие</button>
-            <button class="category-btn" onclick="filterProducts('godly')">✨ Годли</button>
-        </div>
-        
-        <div id="products" class="products-grid"></div>
+
+<canvas id="snow-canvas"></canvas>
+
+<div class="app">
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">🔪</span>
+      <span class="logo-text">MM2 <span class="accent">SHOP</span></span>
+    </div>
+    <div class="header-actions">
+      <button id="admin-btn" class="admin-btn hidden" title="Админ-панель">⚙️</button>
+      <button id="cart-btn" class="cart-btn">
+        🛒
+        <span id="cart-count" class="cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Поиск предметов...">
+  </div>
+
+  <nav class="categories" id="categories">
+    <button class="category-chip active" data-category="all">Все</button>
+    <button class="category-chip" data-category="knife">Ножи</button>
+    <button class="category-chip" data-category="gun">Оружие</button>
+    <button class="category-chip" data-category="pet">Питомцы</button>
+    <button class="category-chip" data-category="bundle">Наборы</button>
+  </nav>
+
+  <main class="products-grid" id="products-grid"></main>
+
+  <p class="empty-state hidden" id="empty-state">Ничего не найдено 😔</p>
+</div>
+
+<!-- Модалка карточки товара -->
+<div class="modal-overlay hidden" id="product-modal-overlay">
+  <div class="modal product-modal">
+    <button class="modal-close" data-close="product-modal-overlay">✕</button>
+    <div class="modal-product-img" id="modal-product-img"></div>
+    <h2 id="modal-product-name"></h2>
+    <p class="modal-product-category" id="modal-product-category"></p>
+    <p class="modal-product-desc" id="modal-product-desc"></p>
+    <div class="modal-price-row">
+      <span class="modal-price" id="modal-product-price"></span>
+      <div class="qty-control">
+        <button id="qty-minus">−</button>
+        <span id="qty-value">1</span>
+        <button id="qty-plus">+</button>
+      </div>
+    </div>
+    <button class="btn-primary" id="add-to-cart-btn">Добавить в корзину</button>
+  </div>
+</div>
+
+<!-- Модалка корзины -->
+<div class="modal-overlay hidden" id="cart-modal-overlay">
+  <div class="modal cart-modal">
+    <button class="modal-close" data-close="cart-modal-overlay">✕</button>
+    <h2>Корзина</h2>
+    <div class="cart-items" id="cart-items"></div>
+    <p class="cart-empty hidden" id="cart-empty">Корзина пуста</p>
+    <div class="cart-footer">
+      <div class="cart-total">Итого: <span id="cart-total">0</span> ₽</div>
+      <button class="btn-primary" id="checkout-btn">Оформить заказ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Админ-панель -->
+<div class="modal-overlay hidden" id="admin-modal-overlay">
+  <div class="modal admin-modal">
+    <button class="modal-close" data-close="admin-modal-overlay">✕</button>
+    <h2>Админ-панель</h2>
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="add">Добавить / Изменить</button>
+      <button class="admin-tab" data-tab="manage">Товары</button>
     </div>
 
-    <!-- Админ-панель -->
-    <div id="admin-panel" class="container" style="display: none;">
-        <header>
-            <h1>⚙️ Админ-панель MM2</h1>
-            <button onclick="showShop()" class="admin-btn">🏪 Магазин</button>
-        </header>
-        
-        <div class="admin-form">
-            <h2>➕ Добавить товар</h2>
-            <input type="text" id="itemName" placeholder="Название предмета">
-            <select id="itemCategory">
-                <option value="knife">🔪 Нож</option>
-                <option value="gun">🔫 Пистолет</option>
-                <option value="rare">💎 Редкий</option>
-                <option value="godly">✨ Годли</option>
-            </select>
-            <input type="number" id="itemPrice" placeholder="Цена (R$)">
-            <input type="file" id="itemImage" accept="image/*">
-            <button onclick="addProduct()">Добавить товар</button>
-        </div>
-        
-        <div class="admin-products">
-            <h2>📦 Управление товарами</h2>
-            <div id="adminProductList"></div>
-        </div>
+    <div class="admin-tab-content" id="admin-tab-add">
+      <form id="add-product-form" class="admin-form">
+        <input type="hidden" id="edit-product-id">
+
+        <label>Название</label>
+        <input type="text" id="product-name" required placeholder="Например: Chroma Lightbringer">
+
+        <label>Категория</label>
+        <select id="product-category">
+          <option value="knife">Ножи</option>
+          <option value="gun">Оружие</option>
+          <option value="pet">Питомцы</option>
+          <option value="bundle">Наборы</option>
+        </select>
+
+        <label>Цена (₽)</label>
+        <input type="number" id="product-price" required min="0" step="1">
+
+        <label>Описание</label>
+        <textarea id="product-desc" placeholder="Краткое описание предмета"></textarea>
+
+        <label>Фото — ссылка (URL)</label>
+        <input type="text" id="product-image-url" placeholder="https://...">
+
+        <label>или загрузить файл</label>
+        <input type="file" id="product-image-file" accept="image/*">
+
+        <img id="image-preview" class="image-preview hidden" src="" alt="preview">
+
+        <button type="submit" class="btn-primary" id="submit-product-btn">Добавить товар</button>
+        <button type="button" class="btn-secondary hidden" id="cancel-edit-btn">Отменить редактирование</button>
+      </form>
     </div>
 
-    <script src="script.js"></script>
+    <div class="admin-tab-content hidden" id="admin-tab-manage">
+      <div class="admin-products-list" id="admin-products-list"></div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
