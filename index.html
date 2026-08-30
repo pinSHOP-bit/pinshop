@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MM2 Shop - Магазин ножей и пистолетов</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Основной магазин -->
+    <div id="shop" class="container">
+        <header>
+            <h1>🔪 MM2 Shop</h1>
+            <button onclick="showAdmin()" class="admin-btn">⚙️ Админ</button>
+        </header>
+        
+        <div class="categories">
+            <button class="category-btn active" onclick="filterProducts('all')">Все</button>
+            <button class="category-btn" onclick="filterProducts('knife')">🔪 Ножи</button>
+            <button class="category-btn" onclick="filterProducts('gun')">🔫 Пистолеты</button>
+            <button class="category-btn" onclick="filterProducts('rare')">💎 Редкие</button>
+            <button class="category-btn" onclick="filterProducts('godly')">✨ Годли</button>
+        </div>
+        
+        <div id="products" class="products-grid"></div>
+    </div>
+
+    <!-- Админ-панель -->
+    <div id="admin-panel" class="container" style="display: none;">
+        <header>
+            <h1>⚙️ Админ-панель MM2</h1>
+            <button onclick="showShop()" class="admin-btn">🏪 Магазин</button>
+        </header>
+        
+        <div class="admin-form">
+            <h2>➕ Добавить товар</h2>
+            <input type="text" id="itemName" placeholder="Название предмета">
+            <select id="itemCategory">
+                <option value="knife">🔪 Нож</option>
+                <option value="gun">🔫 Пистолет</option>
+                <option value="rare">💎 Редкий</option>
+                <option value="godly">✨ Годли</option>
+            </select>
+            <input type="number" id="itemPrice" placeholder="Цена (R$)">
+            <input type="file" id="itemImage" accept="image/*">
+            <button onclick="addProduct()">Добавить товар</button>
+        </div>
+        
+        <div class="admin-products">
+            <h2>📦 Управление товарами</h2>
+            <div id="adminProductList"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
